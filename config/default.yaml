@@ -1,0 +1,46 @@
+input_dir: data/input
+work_dir: data/work
+output_dir: data/output
+processing:
+  pages_per_batch: 10
+  max_workers: 1
+  continue_on_error: true
+  retries: 2
+  resume: true
+  preserve_intermediate: true
+  image_max_long_edge: 1600
+  image_max_pixels: 4000000
+  min_image_width: 80
+  min_image_height: 80
+  max_images_per_vlm_batch: 1
+parsing:
+  engine: docling
+  pipeline: standard
+  ocr: auto
+  language_hints: [zh-TW, en]
+  export_structured_json: true
+  preserve_tables: true
+  preserve_images: true
+vision:
+  enabled: false
+  provider: none
+  model: null
+  timeout_seconds: 120
+  retries: 2
+  describe_diagrams: true
+  describe_photos: true
+  describe_charts: true
+  include_neighbor_text: true
+summary:
+  enabled: false
+  provider: none
+  model: null
+  max_input_tokens_per_call: 6000
+  language: zh-TW
+output:
+  split_strategy: headings_with_page_fallback
+  fallback_pages_per_file: 10
+  create_document_index: true
+  create_chunks_jsonl: true
+  markdown_image_links: relative
+  preserve_source_page_numbers: true

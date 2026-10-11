@@ -1,0 +1,18 @@
+{
+  "name": "ai-knowledge-base-builder",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Offline-first, resumable PDF-to-Markdown knowledge-base builder",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "npm": ">=9"
+  },
+  "scripts": {
+    "postinstall": "node scripts/npm-bootstrap.mjs",
+    "doctor": "uv run kb doctor",
+    "kb": "uv run kb",
+    "build:kb": "uv run kb build --input data/input --config config/default.yaml --skip-vlm --skip-llm",
+    "test": "uv run pytest"
+  }
+}
