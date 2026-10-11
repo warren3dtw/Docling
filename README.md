@@ -87,6 +87,15 @@ npm test
 
 亦可執行 `uv run python scripts/create_sample_pdf.py` 建立三頁的 `data/input/sample.pdf`，再用 `parsing.engine: pymupdf` 做手動煙霧測試。
 
+## AI 輔助開發
+
+- [AGENTS.md](AGENTS.md) 與目錄內 scoped `AGENTS.md` 提供 Codex 專案規則。
+- [CLAUDE.md](CLAUDE.md) 是 Claude Code 的精簡入口；`.claude/rules/`、`.claude/agents/` 與安全 hooks 會提供情境化規範。
+- [docs/README.md](docs/README.md) 索引架構、開發、功能、測試與 changelog 文件。
+- [docs/plans/README.md](docs/plans/README.md) 定義 User Story → Spec → Tasks → Archive 的計畫流程。
+
+Claude Code 的 repo-local agents 可透過自然語言指定，例如「使用 code-reviewer 檢查目前變更」或「使用 test-runner 執行測試」。`git-commit` 只建立 commit，不會 push。
+
 ## 授權
 
 本專案採用 [MIT License](LICENSE)，任何人皆可依授權條款使用、修改與散布。
