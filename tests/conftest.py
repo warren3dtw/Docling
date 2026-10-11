@@ -44,5 +44,8 @@ def config(tmp_path: Path) -> AppConfig:
     value.parsing.engine = "pymupdf"
     value.processing.pages_per_batch = 10
     value.processing.retries = 0
+    value.processing.page_image_dpi = 72
+    value.processing.image_max_long_edge = 800
+    value.processing.image_max_pixels = 640_000
     value.output.fallback_pages_per_file = 100
     return value

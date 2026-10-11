@@ -1,5 +1,22 @@
 # AI Knowledge Base Builder
 
+## 可追溯的逐頁處理流程
+
+目前 PDF 會先建立 SHA-256 與本機來源副本，再進行逐頁 preflight。每頁會依原生文字、掃描／影像、圖文混合、技術圖或空白等訊號記錄建議路由；長 PDF 仍只以有上限的實體小 PDF 批次交給解析器。
+
+輸出新增：
+
+- `data/work/<document_id>/source/original.pdf`：雜湊驗證過的本機來源副本。
+- `data/output/<document_id>/pages/page_NNNN.webp`：受解析度與像素上限控制的完整頁面影像。
+- `data/work/<document_id>/extracted/page_NNNN.json` 與 output 對應副本：逐頁抽取、路由、品質警告與狀態。
+- 章節 Markdown 的「來源頁面」連結：可直接開啟對應的原始頁面影像。
+
+每頁狀態只會是 `success`、`partial`、`failed` 或 `skipped_with_reason`。影像頁沒有可用文字、OCR 不可用、疑似亂碼或低資訊內容都不會被默默當成成功。技術數字與單位只會標示 `numeric_spec_requires_review`，不會自動升格為已驗證事實。
+
+可在 `config/default.yaml` 調整 `native_text_min_chars`、`page_image_dpi` 與 `preserve_page_images`。若啟用遠端 VLM/LLM provider，PDF 圖片與文字可能離開本機；請先確認資料授權與隱私要求。
+
+閱讀用 Markdown 預設整理為每份 PDF 一個 `DOCUMENT.md`，不會依解析 batch 或每個小標題建立大量檔案。只有超過 `output.max_markdown_pages_per_file`（預設 100 頁）才拆成 `PART-001.md` 等文件；細粒度檢索仍由 `chunks.jsonl` 保留。
+
 本機優先、可恢復的 PDF → 結構化 Markdown 處理工具。長文件會先切成真正有界的小 PDF，再逐批解析；輸入 PDF 永遠只讀。預設不呼叫外部 AI，也不會在沒有模型時虛構摘要或圖片說明。
 
 ## 快速安裝（npm）

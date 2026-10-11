@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDF Pipeline Audit</title>
+  <style>
+    :root { color-scheme:light; --ink:#172033; --muted:#5e6878; --brand:#3157d5; --panel:#f5f7fb; --line:#dfe4ee; }
+    * { box-sizing:border-box; } body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink); line-height:1.65; }
+    main { width:min(1080px,calc(100% - 32px)); margin:32px auto 64px; }
+    nav { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:28px; }
+    a { color:var(--brand); } table { width:100%; border-collapse:collapse; display:block; overflow-x:auto; }
+    th,td { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+    th { background:var(--panel); } code { overflow-wrap:anywhere; }
+    .callout { background:var(--panel); border-left:4px solid var(--brand); padding:12px 16px; }
+  </style>
+</head>
+<body><main>
+  <nav><a href="README.md">文件索引</a><a href="PDF_PIPELINE_AUDIT.md">Markdown 版本</a><a href="PROJECT_STATUS.html">專案狀態</a></nav>
+  <h1>PDF Pipeline Audit</h1>
+  <p>Audit date: 2026-10-11. This report records implemented behavior, remaining gaps, quality risks, and next steps. The separate real-PDF validation report describes the sample-based checks and their limits.</p>
+  <h2>目前流程</h2>
+  <p><code>Input PDF → SHA-256/source copy → per-page profile → bounded page rendering → physical PDF batches → Docling/PyMuPDF → checkpoints → per-page JSON/quality state → chapter assembly → Markdown/source-page links → indexes/QA</code></p>
+  <p>長文件仍使用有上限的實體 PDF 批次；人類可見頁碼均為原始 PDF 的 1-based 全域頁碼。Manifest v1 以加法方式加入 page profiles、page images 與 page records。</p>
+  <h2>Gap matrix</h2>
+  <table><thead><tr><th>領域</th><th>狀態</th><th>現況與後續</th></tr></thead><tbody>
+    <tr><td>頁面預檢與路由</td><td>Partial</td><td>以文字、圖片、向量圖形和覆蓋率產生建議；尚無完全獨立的逐頁 OCR/VLM 工作佇列，需以代表性資料校準。</td></tr>
+    <tr><td>來源與追溯</td><td>Implemented</td><td>來源雜湊、穩定 document ID、1-based 頁碼、逐頁 JSON 與 Markdown 來源頁連結均已實作。</td></tr>
+    <tr><td>OCR 與內容品質</td><td>Partial</td><td>Docling 可依 batch 內的低文字影像頁啟用 OCR；PyMuPDF 不提供 OCR。低品質與數值規則仍需人工標註資料驗證。</td></tr>
+    <tr><td>失敗處理與續跑</td><td>Implemented</td><td>有界批次、雜湊檢查、原子狀態寫入、失敗頁狀態與選擇性重試皆有測試。</td></tr>
+    <tr><td>表格／技術圖品質</td><td>Partial</td><td>有表格與圖片保存，但欄列、工程圖及精確技術 token 仍需人工複核。</td></tr>
+    <tr><td>生成式能力與安全</td><td>Partial</td><td>VLM/LLM 為 opt-in；尚需 prompt-injection 邊界、模型／提示版本紀錄與授權資料上的評估。</td></tr>
+    <tr><td>檢索與審核介面</td><td>Partial / Not found</td><td>chunks 含頁碼來源；尚無向量檢索、圖像相似搜尋或 approve/edit/reject 審核 UI。</td></tr>
+  </tbody></table>
+  <h2>已知失敗與限制</h2>
+  <ul>
+    <li>PyMuPDF fallback 無法 OCR 影像頁；這類頁面會保留來源並標成 partial。</li>
+    <li>結構 QA 通過不代表 OCR、表格或技術規格正確；人工抽查曾發現精確產品文字的辨識錯誤。</li>
+    <li>逐頁 profile 與 numeric review 是啟發式，不代表事實驗證。</li>
+    <li>遠端 OCR/VLM/LLM 可能傳送圖片與文字離開本機，必須在明確選擇及隱私審核後啟用。</li>
+  </ul>
+  <h2>優先路線</h2>
+  <ol>
+    <li>以非機密、有人工作標註的文字／掃描／技術圖／表格樣本校準 profile 與品質門檻。</li>
+    <li>評估真正的 OCR 與視覺審查佇列，量測準確率、記憶體、時間與頁面影像解析度。</li>
+    <li>加入表格對齊、prompt-injection 隔離、模型版本與執行資源紀錄。</li>
+    <li>先評估帶來源頁引用的關鍵字檢索，再決定是否需要向量或多模態索引。</li>
+  </ol>
+  <h2>驗證</h2>
+  <p><code>uv run pytest</code>：11 tests passed。合成測試涵蓋批次與頁碼映射、續跑、來源雜湊、頁面狀態、Markdown 連結與 JSONL。尚未完成真實 OCR 掃描、密集工程表格、技術爆炸圖或 200+ 頁壓力評估。</p>
+  <div class="callout">保留來源 PDF 為依據；技術數值未經人工或專用驗證流程批准前，不應當成權威知識。</div>
+</main></body></html>

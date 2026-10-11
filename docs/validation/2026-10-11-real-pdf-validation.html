@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>86 頁實際 PDF 流程驗證</title>
+  <style>
+    :root { color-scheme:light; --ink:#172033; --muted:#5e6878; --brand:#3157d5; --ok:#13795b; --warn:#9a5b00; --panel:#f5f7fb; --line:#dfe4ee; }
+    * { box-sizing:border-box; } body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink); line-height:1.65; }
+    main { width:min(1080px,calc(100% - 32px)); margin:32px auto 64px; } nav { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:28px; }
+    a { color:var(--brand); } h1 { margin-bottom:8px; } h2 { margin-top:34px; border-bottom:1px solid var(--line); padding-bottom:7px; }
+    .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin:20px 0; }
+    .card,.callout { border:1px solid var(--line); border-radius:12px; padding:16px 18px; background:var(--panel); }
+    .label { display:block; color:var(--muted); font-size:.82rem; } .ok { color:var(--ok); font-weight:700; } .warn { color:var(--warn); font-weight:700; }
+    table { width:100%; border-collapse:collapse; display:block; overflow-x:auto; } th,td { border-bottom:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; } th { background:var(--panel); }
+    code { background:#eef1f7; border-radius:4px; padding:2px 5px; } pre { background:#172033; color:#f7f8fb; border-radius:10px; padding:15px; overflow:auto; } pre code { background:transparent; padding:0; }
+    li + li { margin-top:6px; }
+  </style>
+</head>
+<body><main>
+  <nav aria-label="文件導覽"><a href="../PROJECT_STATUS.html">專案狀態</a><a href="2026-10-11-real-pdf-validation.md">Markdown 報告</a><a href="../README.md">文件首頁</a></nav>
+  <h1>86 頁實際 PDF 流程驗證</h1>
+  <div class="meta">
+    <div class="card"><span class="label">驗證日期</span>2026-10-11</div>
+    <div class="card"><span class="label">階段</span>實際文件 smoke validation 完成</div>
+    <div class="card"><span class="label">模式</span>本機離線 Docling + RapidOCR</div>
+    <div class="card"><span class="label">結論</span><span class="ok">結構 QA 通過</span>；內容準確率未通過</div>
+  </div>
+
+  <h2>驗證範圍與執行方式</h2>
+  <p>使用 <code>data/input</code> 中唯一一份 86 頁 PDF 執行完整流程。來源保持唯讀；VLM／LLM 停用，因此圖片與文字沒有離開本機。</p>
+  <pre><code>uv run kb build --input data/input --config config/default.yaml --skip-vlm --skip-llm
+$env:PYTHONUTF8 = "1"
+uv run kb validate 26_clt_and_mass_timber_en_-32cd7da6637d --config config/default.yaml
+uv run kb resume 26_clt_and_mass_timber_en_-32cd7da6637d --config config/default.yaml</code></pre>
+
+  <h2>結果摘要</h2>
+  <table><thead><tr><th>項目</th><th>結果</th></tr></thead><tbody>
+    <tr><td>來源 PDF</td><td>1 份，86 頁，約 17 MB</td></tr><tr><td>實體 batches</td><td>9 個：8 × 10 頁 + 1 × 6 頁</td></tr>
+    <tr><td>Batch 成功／失敗</td><td class="ok">9／0</td></tr><tr><td>Batch 累計解析時間</td><td>696.87 秒</td></tr>
+    <tr><td>Page records／WebP</td><td>86／86</td></tr><tr><td>Page 狀態</td><td>83 success、3 partial、0 failed、0 skipped</td></tr>
+    <tr><td>Chapters／chunks</td><td>64／64</td></tr><tr><td>抽取圖片</td><td>151；VLM 停用，全部 pending</td></tr>
+    <tr><td>Broken links</td><td class="ok">0</td></tr><tr><td>Output 大小</td><td>54.81 MiB</td></tr><tr><td>QA</td><td class="ok">valid: true</td></tr>
+  </tbody></table>
+
+  <h2>完整性與 resume</h2>
+  <ul><li>來源副本 SHA-256 與 input 完全相同。</li><li>所有 batch 不超過 10 頁，總計 86 頁；全域頁碼連續 1–86。</li><li>86 份逐頁 JSON 與 64 個 chunks 都有正確 provenance。</li><li>Markdown、frontmatter、JSONL、頁面資產與相對連結通過 QA。</li><li>Resume 於 37.61 秒完成，9 個 batch attempts 全部未變，沒有重跑成功解析。</li></ul>
+
+  <h2>Partial 頁面抽查</h2>
+  <table><thead><tr><th>頁碼</th><th>原因</th><th>人工觀察</th></tr></thead><tbody>
+    <tr><td>71</td><td><code>very_short_extracted_text</code></td><td>貨櫃與設備照片，幾乎沒有可辨識文字</td></tr>
+    <tr><td>78</td><td><code>very_short_extracted_text</code></td><td>木構外牆細部照片，幾乎沒有可辨識文字</td></tr>
+    <tr><td>86</td><td><code>very_short_extracted_text</code></td><td>樓板施工工具照片，幾乎沒有可辨識文字</td></tr>
+  </tbody></table>
+  <p>三頁完整來源影像均已保存，標為 <code>partial</code> 符合保守品質政策，未發現頁面遺失。</p>
+
+  <h2>Markdown 文件整併</h2>
+  <p>閱讀文件已重新匯出為單一 <code>DOCUMENT.md</code>。64 個章節錨點留在完整文件內，INDEX 連到對應位置，chunks.jsonl 保持 64 筆章節粒度資料。</p>
+  <ul><li>共 3 份 Markdown：DOCUMENT、INDEX、README；舊章節 Markdown 為 0。</li><li><code>DOCUMENT.md</code>：91,889 bytes，64 個章節錨點。</li><li>QA <code>valid: true</code>，0 broken links。</li></ul>
+
+  <h2>Page profile 觀察</h2>
+  <ul><li>86 頁皆有 <code>image_only</code> 與 <code>scan_or_image</code>。</li><li>80 頁有 <code>technical_diagram</code> 訊號；34 頁有 <code>scan</code> 訊號。</li><li>這些是 heuristic，下一階段仍需人工標註樣本校準。</li></ul>
+
+  <h2>每 batch 內容抽樣</h2>
+  <p>人工對照頁 1、11、21、31、41、51、61、71、81 的來源影像與抽取文字：</p>
+  <ul><li>頁 1、21、31、41、51、81 的主要中英文內容大致一致，閱讀順序可用。</li><li>頁 71 是照片頁，只有圖片標記並維持 <code>partial</code>，符合預期。</li><li>頁 11 的產品頁標題有遺漏與破碎文字。</li><li>頁 61 的產品代碼、塗層／材料文字有拼字及字符辨識錯誤。</li><li>頁 11、61 仍被標示為 <code>success</code>，現有品質規則未提出警告。</li></ul>
+  <div class="callout"><strong>重要：</strong><code>QA valid: true</code> 只表示頁面覆蓋、資料結構、連結與狀態完整，不代表 OCR 或技術規格完全正確。輸出目前適合做可追溯草稿與人工複核來源，不應直接視為權威技術知識。</div>
+
+  <h2>發現的問題</h2>
+  <ol><li><span class="warn">Windows console 編碼：</span>CP932 下輸出中文 QA 會觸發 <code>UnicodeEncodeError</code>；設定 <code>PYTHONUTF8=1</code> 後正常。</li><li>需要 OCR 的 batch 會重複初始化 Docling／RapidOCR converter，累計約 11 分 37 秒。</li><li>Resume 不重跑 batch，但重新掃描頁面、圖片與輸出仍需約 38 秒。</li><li>VLM 按規範停用，因此 151 張圖片沒有語意描述，也沒有捏造內容。</li><li>低品質規則沒有抓到頁 11、61 的產品標題／代碼錯誤，結構 QA 與內容準確率仍有缺口。</li></ol>
+
+  <h2>下一步與限制</h2>
+  <ol><li>修正 Windows 非 UTF-8 console 輸出。</li><li>評估安全重用 OCR converter。</li><li>建立文字、表格與技術圖人工標註樣本。</li><li>為產品代碼、認證編號與材料 token 增加複核規則。</li><li>擴大 64 章 Markdown 的內容抽樣。</li></ol>
+  <div class="callout">本次只驗證一份 86 頁、高度影像化文件；尚不能代表所有語言、表格、原生文字 PDF 或 200+ 頁文件的品質與效能。</div>
+  <p>來源 PDF 與生成的 <code>data/output</code>/<code>data/work</code> 產物依專案規範不納入 Git。需在本機執行流程後查看實際輸出。</p>
+</main></body></html>

@@ -16,6 +16,16 @@ class BatchParser(Protocol):
     def parse(self, batch_pdf: Path, global_start_page: int, raw_output: Path) -> dict[str, Any]: ...
 
 
+def batch_requires_ocr(batch_pdf: Path, native_text_min_chars: int) -> bool:
+    """Return true when at least one page is image-backed and lacks usable native text."""
+    with fitz.open(batch_pdf) as document:
+        for page in document:
+            compact_text = re.sub(r"\s+", "", page.get_text("text", sort=True))
+            if len(compact_text) < native_text_min_chars and page.get_image_info():
+                return True
+    return False
+
+
 def _page_content(doc: fitz.Document, local_index: int, global_page: int, preserve_tables: bool) -> dict:
     page = doc[local_index]
     text = page.get_text("text", sort=True).strip()
@@ -68,7 +78,12 @@ class DoclingParser:
             raise RuntimeError("Docling 未安裝；請執行 `uv sync --extra docling`，或將 parsing.engine 設為 pymupdf。") from exc
 
         options = PdfPipelineOptions()
-        options.do_ocr = self.config.parsing.ocr != "never"
+        if self.config.parsing.ocr == "never":
+            options.do_ocr = False
+        elif self.config.parsing.ocr == "always":
+            options.do_ocr = True
+        else:
+            options.do_ocr = batch_requires_ocr(batch_pdf, self.config.processing.native_text_min_chars)
         options.do_table_structure = self.config.parsing.preserve_tables
         options.generate_picture_images = self.config.parsing.preserve_images
         options.generate_page_images = False

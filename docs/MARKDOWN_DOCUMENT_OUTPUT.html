@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Markdown 文件整併方式｜Docling</title>
+  <style>
+    :root { color-scheme:light; --ink:#172033; --muted:#5e6878; --brand:#3157d5; --panel:#f5f7fb; --line:#dfe4ee; }
+    * { box-sizing:border-box; } body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink); line-height:1.65; }
+    main { width:min(900px,calc(100% - 32px)); margin:32px auto 64px; } nav { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:28px; }
+    a { color:var(--brand); } h1 { margin-bottom:8px; } h2 { margin-top:32px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+    .meta,.callout { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 20px; }
+    .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; } .label { display:block; color:var(--muted); font-size:.85rem; }
+    code { background:#eef1f7; border-radius:4px; padding:2px 5px; } pre { background:#172033; color:white; border-radius:10px; padding:15px; overflow:auto; } pre code { background:transparent; }
+  </style>
+</head>
+<body><main>
+  <nav><a href="PROJECT_STATUS.html">專案狀態</a><a href="MARKDOWN_DOCUMENT_OUTPUT.md">Markdown 版本</a><a href="README.md">文件索引</a></nav>
+  <h1>Markdown 文件整併方式</h1>
+  <section class="meta"><div><span class="label">最後更新</span>2026-10-11</div><div><span class="label">階段</span>已實作並套用</div><div><span class="label">預設</span>每份 PDF 一份 DOCUMENT.md</div></section>
+
+  <h2>使用者看到的文件</h2>
+  <p>解析 batch 的大小控制記憶體和續跑範圍，不決定閱讀文件數量。解析完成後，語意章節整合到一份完整 Markdown。章節保留標題與錨點；INDEX 可跳至章節，chunks.jsonl 保留語意章節供檢索。</p>
+  <p>預設 <code>output.max_markdown_pages_per_file: 100</code>。100 頁內輸出 <code>DOCUMENT.md</code>；超過時在章節邊界輸出 <code>PART-001.md</code> 等檔案。單一章節也遵守相同頁數上限。</p>
+
+  <h2>輸出位置</h2>
+  <ul><li><code>data/output/&lt;id&gt;/DOCUMENT.md</code>：完整閱讀版。</li><li><code>data/output/&lt;id&gt;/PART-*.md</code>：大型文件分段。</li><li><code>INDEX.md</code>：連到文件中的章節錨點。</li><li><code>chunks.jsonl</code>：既有欄位不變，來源路徑可連回章節。</li></ul>
+  <p>重新匯出時會清除舊版自動產生的 <code>chapters/ch-*.md</code>。</p>
+
+  <h2>目前套用情況</h2>
+  <p>86 頁 CLT PDF 低於 100 頁上限，會整理成一份 <code>DOCUMENT.md</code>。64 個語意章節保留在文件內，檢索仍有 64 個章節 chunks。</p>
+  <p>重新匯出結果：<code>DOCUMENT.md</code>、<code>INDEX.md</code>、<code>README.md</code> 共三份 Markdown；不再有舊的章節 Markdown。完整文件大小 91,889 bytes，QA <code>valid: true</code>，broken links 為 0。</p>
+
+  <h2>操作</h2>
+  <pre><code>uv run kb resume 26_clt_and_mass_timber_en_-32cd7da6637d --config config/default.yaml</code></pre>
+  <p>修改 <code>config/default.yaml</code> 的 <code>output.max_markdown_pages_per_file</code> 後，重新執行 resume 或 build。這是輸出設定，不會使成功解析 batches 失效。</p>
+
+  <h2>驗證與限制</h2>
+  <ul><li>檢查文件頁數上限、章節錨點、圖片與來源頁連結。</li><li>檢索仍使用細分的章節 chunks。</li><li>整併只調整檔案與章節呈現，不會修正 OCR 錯誤；技術代碼仍需人工抽驗。</li></ul>
+</main></body></html>

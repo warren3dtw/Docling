@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import json
+
 from knowledge_builder.parse_docling import PyMuPDFParser
 from knowledge_builder.pipeline import build_pdf
 
@@ -23,6 +25,8 @@ def test_resume_only_retries_failed_batch(synthetic_pdf, config):
     first, report = build_pdf(synthetic_pdf, config, parser=parser, skip_vlm=True, skip_llm=True)
     assert report["batches_failed"] == 1
     assert parser.calls == [1, 11, 21]
+    failed_record = config.output_dir / first["document_id"] / "extracted" / "page_0011.json"
+    assert json.loads(failed_record.read_text(encoding="utf-8"))["status"] == "failed"
     parser.calls.clear()
     second, report = build_pdf(synthetic_pdf, config, parser=parser, skip_vlm=True, skip_llm=True)
     assert parser.calls == [11]

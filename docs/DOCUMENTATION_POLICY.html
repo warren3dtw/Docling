@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>文件雙格式規範｜AI Knowledge Base Builder</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#5d687a; --brand:#3157d5; --panel:#f5f7fb; --line:#dfe4ee; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink); background:#fff; line-height:1.65; }
+    main { width:min(960px,calc(100% - 32px)); margin:32px auto 64px; }
+    nav { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:28px; }
+    a { color:var(--brand); }
+    h1 { margin-bottom:8px; }
+    h2 { margin-top:32px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+    .meta,.notice { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 20px; }
+    .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+    .label { display:block; color:var(--muted); font-size:.85rem; }
+    code { background:#eef1f7; border-radius:4px; padding:2px 5px; }
+    li + li { margin-top:6px; }
+  </style>
+</head>
+<body>
+<main>
+  <nav aria-label="文件導覽">
+    <a href="README.md">文件首頁</a>
+    <a href="PROJECT_STATUS.html">專案狀態</a>
+    <a href="DOCUMENTATION_POLICY.md">Markdown 版本</a>
+  </nav>
+  <h1>文件雙格式規範</h1>
+  <section class="meta" aria-label="文件狀態">
+    <div><span class="label">最後更新</span>2026-10-11</div>
+    <div><span class="label">狀態</span>已生效</div>
+    <div><span class="label">適用範圍</span>整個 repository</div>
+  </section>
+
+  <h2>規則</h2>
+  <p>任何新增或修改的規則、工作流程、功能、內容或 App 操作方式，都必須在同一個變更中同步記錄為 Markdown 與 HTML。兩種格式必須呈現相同的核心資訊，不得讓其中一份落後。</p>
+  <p>全域狀態固定維護於 <a href="PROJECT_STATUS.md"><code>PROJECT_STATUS.md</code></a> 與 <a href="PROJECT_STATUS.html"><code>PROJECT_STATUS.html</code></a>；本規範固定維護於 <code>DOCUMENTATION_POLICY.md</code> 與本頁。</p>
+
+  <h2>每次文件必備內容</h2>
+  <ol>
+    <li>最後更新日期與目前開發或交付階段。</li>
+    <li>已完成項目、進行中項目與下一步。</li>
+    <li>App 安裝、啟動、操作或驗證方式。</li>
+    <li>測試與驗證結果。</li>
+    <li>已知限制、風險或尚未驗證事項。</li>
+  </ol>
+
+  <h2>更新流程</h2>
+  <ol>
+    <li>判斷變更是否涉及規則、流程、功能、內容或操作方式。</li>
+    <li>更新最接近主題的 Markdown；沒有合適文件時建立新文件。</li>
+    <li>同步更新同名 HTML，保持日期、狀態、指令和限制一致。</li>
+    <li>同步更新兩種格式的全域專案狀態。</li>
+    <li>在文件索引加入兩種格式的入口。</li>
+    <li>執行測試，並驗證 HTML 可解析、相對連結存在。</li>
+  </ol>
+
+  <h2>HTML 要求</h2>
+  <ul>
+    <li>使用可直接開啟的完整 HTML，提供標題、導覽與清楚章節。</li>
+    <li>版面需適合桌面與行動裝置，不依賴外部 CDN、遠端字型或 JavaScript。</li>
+    <li>操作指令使用 <code>&lt;code&gt;</code> 或 <code>&lt;pre&gt;</code>，狀態與階段置於頁面上方。</li>
+  </ul>
+
+  <h2>驗證結果</h2>
+  <p>本規範建立時，已同步新增 Markdown／HTML 規範文件與專案狀態頁，並將入口加入文件索引。</p>
+
+  <h2>已知限制</h2>
+  <div class="notice">目前 HTML 為人工同步維護，尚未由 Markdown 自動產生；每次變更必須透過審查與連結驗證避免內容漂移。</div>
+</main>
+</body>
+</html>

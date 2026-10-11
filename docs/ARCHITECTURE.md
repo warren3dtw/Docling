@@ -48,6 +48,25 @@ data/input/*.pdf（唯讀）
 
 每批先在 manifest 標記 `running`，成功後記錄 `output_path`、`output_sha256`、attempts 與耗時；失敗則保留例外型別和訊息。JSON/文字先寫同目錄暫存檔再 replace，避免中斷留下半份狀態。`continue_on_error` 允許其他批次繼續，最終 manifest 會是 `partial`。
 
+## 逐頁 grounding 階段
+
+更新後的主要順序為：
+
+```text
+scan/hash
+  -> preserve work/<id>/source/original.pdf
+  -> profile every page
+  -> render one bounded page image at a time
+  -> split into bounded physical PDFs
+  -> parse/checkpoint/retry batches
+  -> write extracted/page_NNNN.json atomically
+  -> assemble chapters
+  -> export Markdown with source-page links
+  -> validate page coverage, assets, links and indexes
+```
+
+`page_grounding.py` 負責來源副本、profile、bounded render、逐頁品質規則與 JSON contract。Manifest v1 以加法方式新增 `page_profiles`、`page_images` 與 `pages`，沒有移除或改名既有欄位。逐頁 JSON 同時寫入 work（可續跑／稽核）與 output（供檢視／下游使用）；原始 PDF 只保存在 work，避免把來源文件當成發布產物。
+
 ## Enrichment 邊界
 
 預設 `vision.enabled` 與 `summary.enabled` 都是 `false`。離線輸出只包含原始可擷取內容、擷取式關鍵字及 `pending_enrichment`。啟用 OpenAI-compatible provider 後，圖片與章節文字可能傳到本機或遠端端點；呼叫具有 timeout、有限 retry 與 JSON 驗證。失敗狀態明確記錄，不能用猜測內容掩蓋。
@@ -58,9 +77,10 @@ data/input/*.pdf（唯讀）
 |---|---|
 | `data/work/<id>/manifest.json` | 來源、指紋、批次狀態、圖片、章節與 warnings |
 | `data/work/<id>/batches/*.json` | parser 名稱與帶全域 `page_number` 的 pages |
-| `data/output/<id>/chapters/*.md` | YAML frontmatter、來源頁範圍、原始內容、選用 enrichment |
-| `INDEX.md` | 章節、頁碼、關鍵字、處理狀態 |
-| `chunks.jsonl` | chunk/document/chapter ID、文字、標題、頁碼、圖片與來源路徑 |
+| `data/output/<id>/DOCUMENT.md` | 預設單一完整閱讀文件；含 YAML frontmatter、章節錨點、來源頁連結與圖片 |
+| `data/output/<id>/PART-*.md` | 超過 `max_markdown_pages_per_file` 時才輸出的有界分段文件 |
+| `INDEX.md` | 語意章節、頁碼、關鍵字與合併文件錨點 |
+| `chunks.jsonl` | 保持語意章節粒度與既有欄位；來源路徑指向合併文件錨點 |
 | `qa_report.json` | 成功/失敗批次、頁數、圖片、broken links、warnings、manual review |
 
 `schema_version` 目前為 1。任何破壞性格式變更都需版本化與遷移說明。

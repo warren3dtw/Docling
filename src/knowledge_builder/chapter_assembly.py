@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 
 
-def assemble_chapters(pages: list[dict], fallback_pages: int = 10) -> list[dict]:
+def assemble_chapters(pages: list[dict], fallback_pages: int = 10, max_pages_per_chapter: int = 100) -> list[dict]:
     """Build chapters after all batches are loaded, so batch boundaries have no semantic meaning."""
     chapters: list[dict] = []
     current: dict | None = None
@@ -19,6 +19,9 @@ def assemble_chapters(pages: list[dict], fallback_pages: int = 10) -> list[dict]
         if page.get("text"):
             current["parts"].append(page["text"])
         current["parts"].extend(page.get("tables", []))
+        if len(current["source_pages"]) >= max_pages_per_chapter:
+            current = None
+            continue
         if not title and len(current["source_pages"]) >= fallback_pages:
             current = None
     for chapter in chapters:

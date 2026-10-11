@@ -16,7 +16,7 @@
 
 ### 章節與 Markdown 匯出
 
-所有成功頁面跨批次載入後才組裝章節，因此批次邊界沒有語意。標題改變時切章；沒有標題則依 fallback 頁數切分。輸出含 YAML frontmatter、來源頁範圍、擷取式關鍵字、圖片與相鄰章節連結。
+所有成功頁面跨批次載入後才組裝語意章節，因此批次邊界沒有語意。閱讀用 Markdown 預設整份文件輸出為單一 `DOCUMENT.md`，章節以標題與錨點留在同一份檔案；`chunks.jsonl` 仍保留細分章節供檢索。只有超過 `output.max_markdown_pages_per_file`（預設 100 頁）時，才在章節邊界輸出 `PART-001.md` 等分段文件。每份文件含 YAML frontmatter、全域來源頁碼、頁面影像連結與章節內容。
 
 ### 圖片抽取與可選 VLM
 
@@ -33,6 +33,16 @@
 ### CLI 與環境診斷
 
 `doctor` 不呼叫模型，只回報 OS、Python、CPU/RAM、GPU、Docling、模型設定與 key 是否存在。`build`、`resume`、`validate`、`index`、`enrich` 分別處理初次建置、續跑、驗證、重建及 opt-in enrichment。
+
+## 逐頁來源追溯與品質狀態
+
+- 解析前以文字量、圖片、向量圖形與圖片覆蓋率建立 page profile 與建議路由。
+- 原始 PDF 以 SHA-256 驗證後保存在 work 目錄；每頁完整影像以 bounded WebP 形式輸出。
+- 每頁都有獨立 JSON，包含全域 1-based 頁碼、抽取文字、表格、圖片、路由、品質警告與處理設定。
+- 失敗或低品質頁面不會無聲消失；QA 彙整四種頁面狀態並驗證所有頁面記錄與來源連結。
+- Markdown 章節可點回來源頁影像；既有 frontmatter 與 `chunks.jsonl` 欄位維持相容。
+
+目前 page profile 是可稽核的規則式路由建議；真正的逐頁 OCR/VLM 分派與真實掃描品質基準仍列為後續工作。
 
 ## 已知限制
 

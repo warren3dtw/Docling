@@ -11,6 +11,7 @@ from .config import AppConfig
 from .image_extract import extract_images
 from .index_build import build_indexes
 from .markdown_export import export_chapters
+from .page_grounding import preserve_source_pdf, profile_pdf, render_page_images, write_page_records
 from .llm import provider_from_env as summary_provider_from_env
 from .parse_docling import BatchParser, make_parser
 from .pdf_scan import scan_pdf, split_pdf
@@ -25,6 +26,8 @@ def build_pdf(pdf: Path, config: AppConfig, parser: BatchParser | None = None, f
     output_dir = config.output_dir / info.document_id
     work_dir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
+    preserve_source_pdf(pdf, work_dir, info.sha256)
+    profiles = profile_pdf(pdf, config.processing.native_text_min_chars)
     manifest_path = work_dir / "manifest.json"
     previous = load_json(manifest_path, {})
     fingerprint = config.fingerprint()
@@ -34,11 +37,36 @@ def build_pdf(pdf: Path, config: AppConfig, parser: BatchParser | None = None, f
         "schema_version": 1, "document_id": info.document_id, "source_file": info.filename,
         "source_path": info.path, "source_sha256": info.sha256, "config_fingerprint": fingerprint,
         "page_count": info.page_count, "parser": config.parsing.engine, "updated_at": utc_now(),
+        "preserved_source": "source/original.pdf", "page_profiles": profiles,
     })
     if not cache_valid:
         manifest["batches"] = {}
     manifest.setdefault("batches", {})
     manifest.setdefault("warnings", [])
+    page_asset_fingerprint = ":".join(
+        str(value)
+        for value in (
+            info.sha256,
+            config.processing.page_image_dpi,
+            config.processing.image_max_long_edge,
+            config.processing.image_max_pixels,
+        )
+    )
+    regenerate_page_images = force or previous.get("page_asset_fingerprint") != page_asset_fingerprint
+    page_images = (
+        render_page_images(
+            pdf,
+            output_dir / "pages",
+            config.processing.page_image_dpi,
+            config.processing.image_max_long_edge,
+            config.processing.image_max_pixels,
+            regenerate=regenerate_page_images,
+        )
+        if config.processing.preserve_page_images
+        else []
+    )
+    manifest["page_asset_fingerprint"] = page_asset_fingerprint
+    manifest["page_images"] = page_images
     atomic_write_json(manifest_path, manifest)
     parser = parser or make_parser(config)
 
@@ -97,7 +125,13 @@ def build_pdf(pdf: Path, config: AppConfig, parser: BatchParser | None = None, f
     manifest["images"] = images
     manifest["filtered_images"] = filtered
     manifest["warnings"] = sorted(set(manifest.get("warnings", []) + (["VLM 未啟用；圖片描述保持 pending_enrichment。"] if images and (skip_vlm or not config.vision.enabled) else []) + (["LLM 未啟用；摘要與搜尋問題保持 pending_enrichment。"] if skip_llm or not config.summary.enabled else [])))
-    chapters = assemble_chapters(pages, config.output.fallback_pages_per_file)
+    manifest["pages"] = write_page_records(work_dir, output_dir, info, config, manifest, profiles, pages, page_images, images)
+    atomic_write_json(manifest_path, manifest)
+    chapters = assemble_chapters(
+        pages,
+        config.output.fallback_pages_per_file,
+        config.output.max_markdown_pages_per_file,
+    )
     if config.summary.enabled and not skip_llm:
         if config.summary.provider != "openai_compatible":
             raise RuntimeError(f"不支援的 LLM provider：{config.summary.provider}")
@@ -119,10 +153,15 @@ def build_pdf(pdf: Path, config: AppConfig, parser: BatchParser | None = None, f
                 manifest["warnings"].append(f"{chapter['chapter_id']} 摘要失敗：{type(exc).__name__}: {exc}")
             atomic_write_json(cache_path, {key: chapter.get(key) for key in ("chapter_id", "summary", "keywords", "search_questions", "processing_status", "provider_model")})
     document = info.to_dict()
-    export_chapters(output_dir, document, chapters, images)
+    export_chapters(output_dir, document, chapters, images, page_images, config.output.max_markdown_pages_per_file)
     build_indexes(output_dir, document, chapters, manifest["warnings"])
     manifest["chapters"] = [{key: chapter[key] for key in ("chapter_id", "title", "source_pages", "processing_status")} for chapter in chapters]
-    manifest["status"] = "partial" if any(value.get("status") == "failed" for value in manifest["batches"].values()) else "succeeded"
+    manifest["status"] = (
+        "partial"
+        if any(value.get("status") == "failed" for value in manifest["batches"].values())
+        or any(page.get("status") in {"partial", "failed"} for page in manifest["pages"])
+        else "succeeded"
+    )
     manifest["updated_at"] = utc_now()
     atomic_write_json(manifest_path, manifest)
     shutil.copy2(manifest_path, output_dir / "manifest.json")

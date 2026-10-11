@@ -25,6 +25,9 @@ class ProcessingConfig(StrictModel):
     min_image_width: int = Field(80, ge=1)
     min_image_height: int = Field(80, ge=1)
     max_images_per_vlm_batch: int = Field(1, ge=1)
+    native_text_min_chars: int = Field(40, ge=1)
+    page_image_dpi: int = Field(144, ge=72, le=300)
+    preserve_page_images: bool = True
 
 
 class ParsingConfig(StrictModel):
@@ -62,6 +65,7 @@ class SummaryConfig(StrictModel):
 class OutputConfig(StrictModel):
     split_strategy: str = "headings_with_page_fallback"
     fallback_pages_per_file: int = Field(10, ge=1)
+    max_markdown_pages_per_file: int = Field(100, ge=1)
     create_document_index: bool = True
     create_chunks_jsonl: bool = True
     markdown_image_links: str = "relative"
@@ -82,6 +86,7 @@ class AppConfig(StrictModel):
         # Only values that can change parsing artifacts invalidate successful PDF batches.
         relevant = {
             "pages_per_batch": self.processing.pages_per_batch,
+            "native_text_min_chars": self.processing.native_text_min_chars,
             "parsing": self.parsing.model_dump(mode="json"),
         }
         return hashlib.sha256(json.dumps(relevant, sort_keys=True).encode()).hexdigest()

@@ -13,6 +13,9 @@ processing:
   min_image_width: 80
   min_image_height: 80
   max_images_per_vlm_batch: 1
+  native_text_min_chars: 40
+  page_image_dpi: 144
+  preserve_page_images: true
 parsing:
   engine: docling
   pipeline: standard
@@ -40,6 +43,7 @@ summary:
 output:
   split_strategy: headings_with_page_fallback
   fallback_pages_per_file: 10
+  max_markdown_pages_per_file: 100
   create_document_index: true
   create_chunks_jsonl: true
   markdown_image_links: relative

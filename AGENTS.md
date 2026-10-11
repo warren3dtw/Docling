@@ -27,5 +27,9 @@
 
 - 修改程式後執行 `uv run pytest`；文件或設定變更至少執行相關格式與載入驗證。
 - 行為、設定、CLI 或輸出格式變更時，同步更新 README、`docs/FEATURES.md`、`docs/ARCHITECTURE.md`、`docs/TESTING.md` 與 `docs/CHANGELOG.md` 中受影響部分。
+- 新增或修改規則、流程、功能、內容或 App 操作方式時，必須在同一個變更中同步提供 Markdown 與 HTML 文件；兩者須包含相同的核心資訊，不得只更新其中一種格式。
+- 上述文件至少要標示最後更新日期、目前階段、已完成項目、進行中／待辦項目、操作方式、驗證結果與已知限制，讓使用者不需閱讀程式碼即可判斷專案進度。
+- 全域進度統一更新 `docs/PROJECT_STATUS.md` 與 `docs/PROJECT_STATUS.html`；規則與文件維護方式統一記錄於 `docs/DOCUMENTATION_POLICY.md` 與 `docs/DOCUMENTATION_POLICY.html`。特定主題可另建同名 `.md`／`.html` 文件，但仍須同步更新全域進度。
+- HTML 必須可直接在瀏覽器開啟、具備清楚導覽與可讀版面；Markdown 與 HTML 的狀態、指令、日期及版本資訊必須一致。文件索引需同時連到兩種格式。
 - 較大功能先在 `docs/plans/YYYY-MM-DD-<feature>.md` 記錄 User Story、Spec、Tasks；完成後移至 `docs/plans/archive/`。
 - Commit 使用 Conventional Commits，且不得加入 `Co-Authored-By`。

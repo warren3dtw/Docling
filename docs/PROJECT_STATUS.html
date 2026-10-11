@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>專案狀態總覽｜AI Knowledge Base Builder</title>
+  <style>
+    :root { color-scheme:light; --ink:#172033; --muted:#5e6878; --brand:#3157d5; --ok:#13795b; --next:#a15c00; --idle:#687386; --panel:#f5f7fb; --line:#dfe4ee; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink); background:#fff; line-height:1.65; }
+    main { width:min(1080px,calc(100% - 32px)); margin:32px auto 64px; }
+    nav { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:28px; }
+    a { color:var(--brand); }
+    h1 { margin-bottom:8px; }
+    h2 { margin-top:36px; border-bottom:1px solid var(--line); padding-bottom:7px; }
+    h3 { margin-top:24px; }
+    .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin:20px 0; }
+    .card,.callout { border:1px solid var(--line); border-radius:12px; padding:16px 18px; background:var(--panel); }
+    .label { display:block; color:var(--muted); font-size:.82rem; text-transform:uppercase; letter-spacing:.04em; }
+    .value { font-weight:650; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px; }
+    table { width:100%; border-collapse:collapse; display:block; overflow-x:auto; }
+    th,td { border-bottom:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; }
+    th { background:var(--panel); }
+    .done { color:var(--ok); font-weight:700; }
+    .next { color:var(--next); font-weight:700; }
+    .idle { color:var(--idle); font-weight:700; }
+    code { background:#eef1f7; border-radius:4px; padding:2px 5px; }
+    pre { background:#172033; color:#f7f8fb; border-radius:10px; padding:15px; overflow:auto; }
+    pre code { background:transparent; padding:0; }
+    li + li { margin-top:6px; }
+    @media (max-width:640px) { main { margin-top:20px; } th,td { min-width:140px; } }
+  </style>
+</head>
+<body>
+<main>
+  <nav aria-label="文件導覽">
+    <a href="README.md">文件首頁</a>
+    <a href="PROJECT_STATUS.md">Markdown 版本</a>
+    <a href="DOCUMENTATION_POLICY.html">文件規範</a>
+    <a href="PDF_PIPELINE_AUDIT.md">Pipeline audit</a>
+  </nav>
+  <h1>專案狀態總覽</h1>
+  <div class="meta">
+    <div class="card"><span class="label">最後更新</span><span class="value">2026-10-11</span></div>
+    <div class="card"><span class="label">目前階段</span><span class="value">P0 與 86 頁 smoke validation 完成</span></div>
+    <div class="card"><span class="label">最近驗證</span><span class="value">實際 PDF QA valid；此前 11 tests passed</span></div>
+    <div class="card"><span class="label">預設模式</span><span class="value">離線；AI opt-in</span></div>
+  </div>
+
+  <h2>階段進度</h2>
+  <table>
+    <thead><tr><th>階段</th><th>狀態</th><th>說明</th></tr></thead>
+    <tbody>
+      <tr><td>專案基礎與 CLI</td><td class="done">已完成</td><td>安裝、doctor、build、resume、validate、index、enrich</td></tr>
+      <tr><td>有界 PDF 分批與續跑</td><td class="done">已完成</td><td>實體 batches、1-based 頁碼、原子狀態、選擇性重試</td></tr>
+      <tr><td>逐頁來源追溯</td><td class="done">已完成</td><td>SHA-256、來源副本、profile、WebP、逐頁 JSON</td></tr>
+      <tr><td>Markdown 與 QA</td><td class="done">已完成</td><td>章節、來源連結、chunks、manifest、QA</td></tr>
+      <tr><td>Markdown 文件數量</td><td class="done">已調整</td><td>100 頁內單一 DOCUMENT.md；更大文件最多每 100 頁分段</td></tr>
+      <tr><td>OCR／路由品質校準</td><td class="next">下一階段</td><td>以授權的掃描、表格和技術圖校準</td></tr>
+      <tr><td>Topic synthesis／檢索評估</td><td class="idle">尚未開始</td><td>先完成 source-grounded baseline</td></tr>
+      <tr><td>人工審核介面</td><td class="idle">尚未開始</td><td>尚無 approve/edit/reject UI</td></tr>
+    </tbody>
+  </table>
+
+  <h2>已完成內容</h2>
+  <div class="grid">
+    <section class="card"><h3>可靠處理</h3><ul><li>長 PDF 實體有界分批。</li><li>1-based 全域頁碼。</li><li>原子 manifest 與失敗 batch 續跑。</li></ul></section>
+    <section class="card"><h3>來源追溯</h3><ul><li>來源 SHA-256 與本機副本。</li><li>每頁 profile、WebP、JSON。</li><li>Markdown 可點回來源頁。</li></ul></section>
+    <section class="card"><h3>品質與安全</h3><ul><li>四種頁面狀態與品質警告。</li><li>技術數值需要人工複核。</li><li>VLM／LLM 預設停用。</li></ul></section>
+    <section class="card"><h3>文件</h3><ul><li>規則、流程、功能與操作採 Markdown／HTML 雙格式。</li><li>狀態頁集中呈現目前階段與下一步。</li></ul></section>
+  </div>
+
+  <h2>App 操作方式</h2>
+  <h3>安裝與檢查</h3>
+  <pre><code>npm install
+npm run doctor</code></pre>
+  <p>完整 Docling 環境：</p>
+  <pre><code>uv sync --python 3.12 --extra docling
+uv run kb doctor</code></pre>
+  <h3>PDF 轉 Markdown</h3>
+  <ol><li>將 PDF 放入唯讀的 <code>data/input/</code>。</li><li>執行 <code>npm run build:kb</code>。</li><li>在 <code>data/output/&lt;document_id&gt;/</code> 查看結果。</li></ol>
+  <h3>續跑與驗證</h3>
+  <pre><code>npm run kb -- resume &lt;document_id&gt;
+npm run kb -- validate &lt;document_id&gt;
+npm run kb -- index &lt;document_id&gt;
+npm test</code></pre>
+  <div class="callout">只有在使用者明確啟用 provider 後才執行 enrichment。遠端 provider 可能使圖片與文字離開本機，必須先確認資料授權與隱私要求。</div>
+
+  <h2>最近實際 PDF 驗證</h2>
+  <div class="grid">
+    <section class="card"><h3>完整性</h3><ul><li>86 頁、9/9 batches 成功。</li><li>86 page records、86 WebP。</li><li>0 broken links；QA <span class="done">valid</span>。</li></ul></section>
+    <section class="card"><h3>頁面品質</h3><ul><li>83 success、3 partial、0 failed。</li><li>頁 71、78、86 都是以照片為主的低文字頁，來源影像完整保留。</li></ul></section>
+    <section class="card"><h3>輸出</h3><ul><li>1 份完整 DOCUMENT.md（91,889 bytes）。</li><li>64 個章節錨點、64 個 chunks。</li><li>151 張圖片；VLM 停用，沒有生成描述。</li><li>完整 output 54.77 MiB。</li></ul></section>
+    <section class="card"><h3>效能與續跑</h3><ul><li>Batch 累計解析 696.87 秒。</li><li>Resume 37.61 秒。</li><li>9 個 batch attempts 全部未變。</li></ul></section>
+  </div>
+  <p>86 頁 PDF 的閱讀內容已收進單一 <code>DOCUMENT.md</code>；Markdown 共三份（DOCUMENT、INDEX、README），不再有 64 個獨立章節檔。64 個語意章節仍保留為文件內錨點，檢索 chunks 維持章節粒度。QA <code>valid: true</code>，0 broken links。</p>
+  <p><a href="validation/2026-10-11-real-pdf-validation.html">開啟完整 HTML 驗證報告</a>，或閱讀 <a href="validation/2026-10-11-real-pdf-validation.md">Markdown 版本</a>。</p>
+  <div class="callout"><strong>內容抽樣結果：</strong>主要文字多數可讀，但頁 11、61 的產品標題／代碼出現 OCR 錯誤且未被品質規則攔截。<code>QA valid</code> 只代表結構完整，輸出目前不可直接當作權威技術資料。</div>
+
+  <h2>目前輸出</h2>
+  <table>
+    <thead><tr><th>路徑</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td><code>data/work/&lt;id&gt;/source/original.pdf</code></td><td>本機來源真相副本</td></tr>
+      <tr><td><code>data/work/&lt;id&gt;/batch_pdfs/</code></td><td>有界實體 batches</td></tr>
+      <tr><td><code>data/work/&lt;id&gt;/extracted/page_NNNN.json</code></td><td>逐頁抽取與品質記錄</td></tr>
+      <tr><td><code>data/output/&lt;id&gt;/pages/page_NNNN.webp</code></td><td>來源頁影像</td></tr>
+      <tr><td><code>data/output/&lt;id&gt;/DOCUMENT.md</code></td><td>預設完整閱讀文件</td></tr>
+      <tr><td><code>data/output/&lt;id&gt;/PART-*.md</code></td><td>超過每檔頁數上限時才輸出</td></tr>
+      <tr><td><code>data/output/&lt;id&gt;/manifest.json</code></td><td>整體處理狀態</td></tr>
+      <tr><td><code>data/output/&lt;id&gt;/qa_report.json</code></td><td>完整性與複核提示</td></tr>
+    </tbody>
+  </table>
+
+  <h2>下一步</h2>
+  <ol><li>以授權的 10–30 個代表頁建立基準。</li><li>量測 OCR、表格、數字、頁碼、時間與記憶體。</li><li>將建議路由升級為更細的 OCR／VLM page queues。</li><li>增加 prompt-injection 邊界與 provider／prompt 版本紀錄。</li><li>先評估基本來源引用檢索，再決定向量或圖片檢索。</li></ol>
+
+  <h2>驗證結果</h2>
+  <ul><li>完整測試套件最近一次結果：11 passed（早於 Markdown 整併變更）；整併後以真實 PDF resume、validate 和連結檢查完成流程驗證。</li><li><code>uv run kb doctor</code>：可偵測 Python 3.12、Docling 與本機環境。</li><li>預設 YAML 載入成功；<code>git diff --check</code> 通過。</li></ul>
+
+  <h2>已知限制</h2>
+  <ul><li>目前只完成一份 86 頁高度影像化文件，尚未涵蓋密集表格、原生文字與 200+ 頁壓力基準。</li><li>Page profile 與品質規則仍需代表性資料校準。</li><li>PyMuPDF fallback 不提供 OCR。</li><li>Windows 非 UTF-8 console 輸出中文 QA 可能觸發 <code>UnicodeEncodeError</code>；可先設定 <code>$env:PYTHONUTF8 = "1"</code>。</li><li>每個 OCR batch 都會初始化 converter，本次累計解析約 11 分 37 秒。</li><li>技術代碼與精確 token 的 OCR 錯誤仍可能被標成 <code>success</code>。</li><li>超過預設 100 頁的 PDF 會分成數個 Markdown 部分檔。</li><li>技術數字不會自動視為已驗證事實。</li><li>尚未建置向量資料庫、多模態檢索或人工審核 UI。</li></ul>
+</main>
+</body>
+</html>

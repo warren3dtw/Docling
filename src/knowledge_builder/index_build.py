@@ -11,7 +11,7 @@ def build_indexes(output_dir: Path, document: dict, chapters: list[dict], warnin
     index = ["# 文件索引", ""]
     chunks: list[str] = []
     for chapter in chapters:
-        rel = f"chapters/{chapter['chapter_id']}.md"
+        rel = chapter.get("source_path", f"chapters/{chapter['chapter_id']}.md")
         pages = chapter["source_pages"]
         readme.append(f"- [{chapter['title']}]({rel})（第 {pages[0]}–{pages[-1]} 頁）")
         index.extend([f"## [{chapter['title']}]({rel})", "", f"- 頁碼：{pages[0]}–{pages[-1]}", f"- 關鍵字：{', '.join(chapter['keywords']) or '無'}", f"- 狀態：{chapter['processing_status']}", ""])

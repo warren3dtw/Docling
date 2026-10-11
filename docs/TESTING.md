@@ -10,6 +10,21 @@ uv run pytest
 
 測試使用 PyMuPDF 與 Pillow 動態建立 23 頁合成 PDF，不需要 Docling 模型、GPU、網路、API key 或真實文件。
 
+## 逐頁 grounding 測試
+
+`tests/test_page_grounding.py` 產生三頁合成 PDF（原生文字、整頁圖片、空白頁），驗證：
+
+- page profile 與建議路由的分類訊號。
+- `success`、`partial`、`skipped_with_reason` 狀態。
+- 數字／單位需要複核，以及 PyMuPDF 沒有 OCR 的明確警告。
+- 原始來源副本的 SHA-256、逐頁 WebP、逐頁 JSON 與 QA 統計。
+
+`tests/test_resume.py` 另驗證失敗 batch 的頁面會產生 `failed` record，成功 batch 在續跑時不會重做。`tests/test_markdown.py` 驗證來源頁面連結、頁面影像與逐頁 JSON 存在，同時保留既有 frontmatter 和 JSONL 相容性。
+
+Markdown 匯出以 `DOCUMENT.md` 作為單一文件入口；語意章節仍映射到同檔錨點，`chunks.jsonl` 保持章節粒度。只有文件超過 `max_markdown_pages_per_file` 時才輸出 `PART-*.md`，並在 QA 驗證合併後的相對連結。
+
+目前共有 11 個離線測試；真實 OCR、密集表格、工程圖與 200+ 頁壓力測試仍需使用經授權的代表性資料另行執行。
+
 ## Fixtures
 
 `tests/conftest.py` 的 `synthetic_pdf` 建立 23 頁內容，在第 1 頁放標題、第 11 頁放表格與 120×120 圖片。`config` 將 input/work/output 指向 `tmp_path`、使用 PyMuPDF、每批 10 頁、零 retry，確保隔離且快速。
